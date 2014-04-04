@@ -43,6 +43,8 @@ void print_ast(astnode root, int depth){
     print_ast(child, depth+1);
 
   if(!leaf){
+    for(i = 0; i < depth; i++) 
+      printf("  ");
     printf(")\n");
   }
 }

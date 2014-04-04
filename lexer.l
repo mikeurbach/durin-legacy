@@ -12,7 +12,7 @@ digit [0-9]
 bool "true"|"false"
 id ({letter}|_)({letter}|{digit}|_)*
 integer {digit}+
-float {integer}"."{integer}
+float {integer}?"."{integer}
 
 %x string
 %x comment
