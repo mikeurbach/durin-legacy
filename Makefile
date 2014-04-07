@@ -1,22 +1,31 @@
 CC = gcc
 CFLAGS = -g
+LEXER = lex.yy.c
+LEXER_SRC = lexer.l
+PARSER = parser.tab.c
+PARSER_SRC = parser.y
+SRCS = durin.c repl.c script.c ast.c $(PARSER) $(LEXER)
+HDRS = durin.h repl.h script.h ast.h
+OBJS = durin.o repl.o script.o ast.o parser.tab.o lex.yy.o
 EXEC = durin
-OBJS = durin.o repl.o script.o
-SRCS = durin.c repl.c script.c
-HDRS = durin.h repl.h script.h
+
+
 $(EXEC): $(OBJS)
 	$(CC) $(CFLAGS) -o $(EXEC) $(OBJS)
-$(OBJS): $(SRCS) $(HDRS)
-	$(CC) $(CFLAGS) -c $(SRCS)
 
-parser:
-	bison -d -v parser.y
-	flex lexer.l
-	$(CC) $(CFLAGS) -o $(EXEC) lex.yy.c parser.tab.c ast.c
+$(OBJS): $(SRCS) $(HDRS) $(PARSER) $(LEXER)
+	$(CC) $(CFLAGS) -c $(SRCS) $(PARSER) $(LEXER)
+
+$(PARSER): $(PARSER_SRC)
+	bison -d -v $(PARSER_SRC)
+
+$(LEXER): $(LEXER_SRC)
+	flex $(LEXER_SRC)
 
 clean:
-	rm -f durin
-	rm -f *.o
+	rm -f $(EXEC)
+	rm -f $(OBJS)
+	rm -f $(PARSER)
 	rm -f *~
 	rm -f lex.yy.c
 	rm -f parser.tab.*

@@ -8,6 +8,9 @@
 #define false 0
 typedef int bool;
 
+/* 
+   these are the types of nodes in the AST, terminals in the abstract syntax
+ */
 typedef enum {
   IDENTIFIER,
   INTEGER,
@@ -41,6 +44,10 @@ typedef enum {
   NOTOP
 } astnode_type;
 
+
+/* 
+   for printing ASTs
+ */
 struct token_lookup {
   char *token;
   astnode_type node_type;
@@ -80,6 +87,9 @@ static struct token_lookup token_table[] = {
   {NULL, 0}
 };
 
+/* 
+   core AST node structure
+ */
 typedef struct astnode * astnode;
 struct astnode {
   astnode_type type;

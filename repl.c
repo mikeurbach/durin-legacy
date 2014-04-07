@@ -1,9 +1,13 @@
 #include "repl.h"
+#include "ast.h"
+
+extern astnode parse_buffer(char *, int);
 
 void repl(void){
   int input;
-  unsigned char buffer[MAX_LINE];
+  char buffer[MAX_LINE];
   int idx = 0;
+  astnode ast_root;
 
   /* loop till EOF or error */
   printf(">>> ");
@@ -13,9 +17,14 @@ void repl(void){
     
     /* if the user pressed enter */
     if(input == '\n'){
-      printf(">>> ");
+      /* parse buffer */
+      ast_root = parse_buffer(buffer, idx);
 
-      /* do something with buffer */
+      /* print the ast, unless there was a syntax error */
+      if(ast_root)
+	print_ast(ast_root, 0);
+
+      printf(">>> ");
 
       /* reset the buffer and index, and go on to next line */
       memset(buffer, 0, MAX_LINE);
@@ -32,7 +41,7 @@ void repl(void){
       }
       /* otherwise we are good to go */
       else {
-	buffer[idx++] = (unsigned char) input;
+	buffer[idx++] = (char) input;
       }
     }
   } while(input != EOF);

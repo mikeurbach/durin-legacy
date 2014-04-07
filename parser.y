@@ -132,18 +132,19 @@ FLOATCONST
 
 %%
 
-int main(int argc, char *argv[]){
+astnode parse_buffer(char *buffer, int len){
+  int retval;
   extern int yydebug;
-  yydebug = 1;
 
-  yyparse();
+  //yydebug = 1;
+  
+  yy_scan_bytes(buffer, len);
+  retval = yyparse();
 
-  print_ast(root, 0);
-
-  return 0;
+  return retval ? NULL : root;
 }
 
 int yyerror(char *s){
   fprintf(stderr, "%s\n", s);
-  return 0;
+  return -1;
 }
