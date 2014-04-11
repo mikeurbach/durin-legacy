@@ -27,7 +27,7 @@ void print_ast(astnode root, int depth){
     leaf = true;
   }
 
-  if(root->type == STRING){
+  if(root->type == STRING || root->type == IDENTIFIER){
     printf("%s)", root->value.string_val);
     leaf = true;
   }

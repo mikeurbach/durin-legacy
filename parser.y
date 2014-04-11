@@ -4,7 +4,7 @@
   
   #define YYDEBUG 1
 
-  astnode root;
+  astnode root, id;
 
   extern int yylex();
   extern char *yytext;
@@ -40,10 +40,32 @@
 %%
 
 program: 
-expression
+statement
 {
   root = $1;
   $$ = root;
+}
+;
+
+statement:
+identifier ASSIGN expression
+{
+  astnode node = create_astnode(BINDVAR);
+  node->lchild = $1;
+  node->lchild->rsibling = $3;
+  $$ = node;
+}
+|
+identifier LPAREN identifier-list RPAREN ASSIGN expression
+{
+  astnode node = create_astnode(BINDFUN), n;
+  node->lchild = $1;
+  node->lchild->rsibling = $3;
+  n = node->lchild;
+  while(n->rsibling) 
+    n = n->rsibling;
+  n->rsibling = $6;
+  $$ = node;
 }
 ;
 
@@ -108,9 +130,42 @@ LPAREN expression RPAREN
   $$ = $2;
 }
 |
+identifier
+{
+  $$ = $1;
+}
+|
 literal
 {
   $$ = $1;
+}
+;
+
+identifier-list:
+identifier COMMA identifier-list
+{
+  if($3)
+    $1->rsibling = $3;
+  else {
+    yyerror("syntax error: dangling comma in identifier list");
+    return -1;
+  }
+  $$ = $1;
+}
+|
+identifier
+|
+{
+  $$ = NULL;
+}
+;
+
+identifier:
+ID
+{
+  astnode node = create_astnode(IDENTIFIER);
+  node->value.string_val = strdup(yytext);
+  $$ = node;
 }
 ;
 
