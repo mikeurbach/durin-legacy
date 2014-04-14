@@ -46,7 +46,11 @@ float {integer}?"."{integer}
 "::"         return TYPEANNOT;
 "("          return LPAREN;
 ")"          return RPAREN;
+"["          return LBRACKET;
+"]"          return RBRACKET;
 ","          return COMMA;
+"..."        return DOTS;
+";"          return SEMICOLON;
 "="          return ASSIGN;
 
 "+"          return PLUS;

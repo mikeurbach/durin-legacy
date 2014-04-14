@@ -12,11 +12,15 @@ typedef int bool;
    these are the types of nodes in the AST, terminals in the abstract syntax
  */
 typedef enum {
+  PROGRAM,
+  STATEMENT,
   IDENTIFIER,
   INTEGER,
   FLOAT,
   STRING,
   BOOL,
+  RANGE,
+  INDEX,
   BINDVAR,
   BINDFUN,
   OROP,
@@ -54,13 +58,17 @@ struct token_lookup {
 };
 
 static struct token_lookup token_table[] = {
+  {"PROGRAM",PROGRAM},
+  {"STATEMENT",STATEMENT},
   {"IDENTIFIER",IDENTIFIER},
   {"INTEGER",INTEGER},
   {"FLOAT",FLOAT},
   {"STRING",STRING},
   {"BOOL",BOOL},
-  {"BIND VARIABLE",BINDVAR},
-  {"BIND FUNCTION",BINDFUN},
+  {"RANGE",RANGE},
+  {"INDEX",INDEX},
+  {"BINDVAR",BINDVAR},
+  {"BINDFUN",BINDFUN},
   {"||",OROP},
   {"&&",ANDOP},
   {"==",EQOP}, 
@@ -99,6 +107,8 @@ struct astnode {
     char *string_val;
     bool bool_val;
   } value;
+  int lower_bound;
+  int upper_bound;
   astnode lchild;
   astnode rsibling;
 };

@@ -37,6 +37,11 @@ void print_ast(astnode root, int depth){
     leaf = true;
   }
 
+  if(root->type == RANGE){
+    printf("[%d...%d])", root->lower_bound, root->upper_bound);
+    leaf = true;
+  }
+
   printf("\n");
 
   for(child = root->lchild; child != NULL; child = child->rsibling)

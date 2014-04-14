@@ -24,7 +24,11 @@
 %token TYPEANNOT
 %token LPAREN
 %token RPAREN
+%token LBRACKET
+%token RBRACKET
 %token COMMA
+%token DOTS
+%token SEMICOLON
 
 %right ASSIGN
 
@@ -40,14 +44,43 @@
 %%
 
 program: 
-statement
+statement-list
 {
-  root = $1;
-  $$ = root;
+  astnode node = create_astnode(PROGRAM);
+  node->lchild = $1;
+  $$ = root = node;
+}
+;
+
+statement-list:
+statement SEMICOLON statement-list
+{
+  astnode node = create_astnode(STATEMENT);
+  node->lchild = $1;
+  if($3)
+    node->rsibling = $3;
+
+  $$ = node;
+}
+|
+{
+  $$ = NULL;
 }
 ;
 
 statement:
+bindvar
+{
+  $$ = $1;
+}
+|
+bindfun
+{
+  $$ = $1;
+}
+;
+
+bindvar:
 identifier ASSIGN expression
 {
   astnode node = create_astnode(BINDVAR);
@@ -55,8 +88,10 @@ identifier ASSIGN expression
   node->lchild->rsibling = $3;
   $$ = node;
 }
-|
-identifier LPAREN identifier-list RPAREN ASSIGN expression
+;
+
+bindfun:
+identifier LPAREN formal-params RPAREN ASSIGN expression
 {
   astnode node = create_astnode(BINDFUN), n;
   node->lchild = $1;
@@ -130,6 +165,11 @@ LPAREN expression RPAREN
   $$ = $2;
 }
 |
+range
+{
+  $$ = $1;
+}
+|
 identifier
 {
   $$ = $1;
@@ -141,22 +181,57 @@ literal
 }
 ;
 
-identifier-list:
-identifier COMMA identifier-list
+formal-params:
+formal-param COMMA formal-params
 {
   if($3)
     $1->rsibling = $3;
   else {
-    yyerror("syntax error: dangling comma in identifier list");
+    yyerror("syntax error: extra comma in formal params");
     return -1;
   }
   $$ = $1;
 }
 |
-identifier
+formal-param
 |
 {
   $$ = NULL;
+}
+;
+
+formal-param:
+identifier
+|
+index
+;
+
+range:
+LBRACKET literal DOTS literal RBRACKET
+{
+  if($2->type != INTEGER || $4->type != INTEGER){
+    yyerror("syntax error: only Integer literals are allowed in range definitions");
+    return -1;
+  }
+
+  astnode node = create_astnode(RANGE);
+  node->lower_bound = $2->value.integer_val;
+  node->upper_bound = $4->value.integer_val;
+  $$ = node;
+}
+;
+
+index:
+LBRACKET identifier RBRACKET
+{
+  if($2->type != IDENTIFIER){
+    yyerror("syntax error: only identifiers are allowed in range index declarations");
+    return -1;
+  }
+
+  astnode node = create_astnode(INDEX);
+  node->lchild = $2;
+  $$ = node;
 }
 ;
 
@@ -185,13 +260,14 @@ FLOATCONST
 }
 ;
 
+
 %%
 
 astnode parse_buffer(char *buffer, int len){
   int retval;
   extern int yydebug;
 
-  //yydebug = 1;
+  yydebug = 1;
   
   yy_scan_bytes(buffer, len);
   retval = yyparse();
