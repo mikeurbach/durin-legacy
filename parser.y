@@ -26,6 +26,8 @@
 %token RPAREN
 %token LBRACKET
 %token RBRACKET
+%token LCURLY
+%token RCURLY
 %token COMMA
 %token DOTS
 %token SEMICOLON
@@ -91,16 +93,25 @@ identifier ASSIGN expression
 ;
 
 bindfun:
-identifier LPAREN formal-params RPAREN ASSIGN expression
+LBRACKET return-list RBRACKET ASSIGN identifier LPAREN formal-params RPAREN LCURLY statement-list RCURLY
 {
-  astnode node = create_astnode(BINDFUN), n;
-  node->lchild = $1;
-  node->lchild->rsibling = $3;
-  n = node->lchild;
-  while(n->rsibling) 
-    n = n->rsibling;
-  n->rsibling = $6;
-  $$ = node;
+  astnode 
+    bind = create_astnode(BINDFUN),
+    params = create_astnode(PARAMS),
+    ret = create_astnode(RETURN),
+    n;
+  
+  bind->lchild = $5;
+
+  params->lchild = $7;
+  bind->lchild->rsibling = params;
+
+  ret->lchild = $2;
+  bind->lchild->rsibling->rsibling = ret;
+
+  bind->lchild->rsibling->rsibling->rsibling = $10;
+
+  $$ = bind;
 }
 ;
 
@@ -180,6 +191,18 @@ literal
   $$ = $1;
 }
 ;
+
+return-list:
+identifier COMMA return-list
+{
+  $1->rsibling = $3;
+  $$ = $1;
+}
+|
+identifier
+{
+  $$ = $1;
+}
 
 formal-params:
 formal-param COMMA formal-params

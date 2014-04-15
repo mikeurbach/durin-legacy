@@ -48,6 +48,8 @@ float {integer}?"."{integer}
 ")"          return RPAREN;
 "["          return LBRACKET;
 "]"          return RBRACKET;
+"{"          return LCURLY;
+"}"          return RCURLY;
 ","          return COMMA;
 "..."        return DOTS;
 ";"          return SEMICOLON;
