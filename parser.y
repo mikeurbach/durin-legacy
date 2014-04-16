@@ -28,6 +28,8 @@
 %token RBRACKET
 %token LCURLY
 %token RCURLY
+%token LANGLE
+%token RANGLE
 %token COMMA
 %token DOTS
 %token SEMICOLON
@@ -80,10 +82,28 @@ bindfun
 {
   $$ = $1;
 }
+|
+function-application
+{
+  $$ = $1;
+}
+|
+indexed-block
+{
+  $$ = $1;
+}
 ;
 
 bindvar:
 identifier ASSIGN expression
+{
+  astnode node = create_astnode(BINDVAR);
+  node->lchild = $1;
+  node->lchild->rsibling = $3;
+  $$ = node;
+}
+|
+indexed-expr-identifier ASSIGN expression
 {
   astnode node = create_astnode(BINDVAR);
   node->lchild = $1;
@@ -101,6 +121,11 @@ LBRACKET return-list RBRACKET ASSIGN identifier LPAREN formal-params RPAREN LCUR
     ret = create_astnode(RETURN),
     n;
   
+  if(!$10){
+    yyerror("syntax error: cannot define a function without a body");
+    return -1;
+  }
+
   bind->lchild = $5;
 
   params->lchild = $7;
@@ -112,6 +137,21 @@ LBRACKET return-list RBRACKET ASSIGN identifier LPAREN formal-params RPAREN LCUR
   bind->lchild->rsibling->rsibling->rsibling = $10;
 
   $$ = bind;
+}
+;
+
+indexed-block:
+identifier LESS index-list GREATER  LCURLY statement-list RCURLY
+{
+  astnode node = create_astnode(INDEXEDBLOCK), n;
+  node->lchild = $1;
+  node->lchild->rsibling = $3;
+  n = node->lchild->rsibling;
+  while(n->rsibling != NULL)
+    n = n->rsibling;
+  n->rsibling = $6;
+  
+  $$ = node;
 }
 ;
 
@@ -176,6 +216,11 @@ LPAREN expression RPAREN
   $$ = $2;
 }
 |
+function-application
+{
+  $$ = $1;
+}
+|
 range
 {
   $$ = $1;
@@ -186,23 +231,16 @@ identifier
   $$ = $1;
 }
 |
+indexed-expr-identifier
+{
+  $$ = $1;
+}
+|
 literal
 {
   $$ = $1;
 }
 ;
-
-return-list:
-identifier COMMA return-list
-{
-  $1->rsibling = $3;
-  $$ = $1;
-}
-|
-identifier
-{
-  $$ = $1;
-}
 
 formal-params:
 formal-param COMMA formal-params
@@ -229,6 +267,61 @@ identifier
 index
 ;
 
+function-application:
+identifier LPAREN actual-params RPAREN
+{
+  astnode node = create_astnode(FUNCALL);
+  node->lchild = $1;
+  node->lchild->rsibling = $3;
+  $$ = node;
+}
+;
+
+actual-params:
+actual-param COMMA actual-params
+{
+  if($3)
+    $1->rsibling = $3;
+  else {
+    yyerror("syntax error: extra comma in actual params");
+    return -1;
+  }
+  $$ = $1;
+}
+|
+actual-param
+|
+{
+  $$ = NULL;
+}
+;
+
+actual-param:
+expression
+{
+  $$ = $1;
+}
+;
+
+return-list:
+identifier COMMA return-list
+{
+  if($3)
+    $1->rsibling = $3;
+  else {
+    yyerror("syntax error: extra comma in return list");
+    return -1;
+  }
+  $$ = $1;
+}
+|
+identifier
+|
+{
+  $$ = NULL;
+}
+;
+
 range:
 LBRACKET literal DOTS literal RBRACKET
 {
@@ -244,17 +337,60 @@ LBRACKET literal DOTS literal RBRACKET
 }
 ;
 
+index-list:
+index index-list
+{
+  $1->rsibling = $2;
+  $$ = $1;
+}
+|
+index
+{
+  $$ = $1;
+}
+;
+
 index:
 LBRACKET identifier RBRACKET
 {
   if($2->type != IDENTIFIER){
-    yyerror("syntax error: only identifiers are allowed in range index declarations");
+    yyerror("syntax error: only identifiers are allowed in indices");
     return -1;
   }
 
   astnode node = create_astnode(INDEX);
   node->lchild = $2;
   $$ = node;
+}
+;
+
+index-expr-list:
+index-expr index-expr-list
+{
+  $1->rsibling = $2;
+  $$ = $1;
+}
+|
+index-expr
+{
+  $$ = $1;
+}
+;
+
+index-expr:
+LBRACKET expression RBRACKET
+{
+  astnode node = create_astnode(INDEX);
+  node->lchild = $2;
+  $$ = node;
+}
+;
+
+indexed-expr-identifier:
+identifier index-expr-list
+{
+  $1->lchild = $2;
+  $$ = $1;
 }
 ;
 
