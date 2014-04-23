@@ -43,7 +43,8 @@ float {integer}?"."{integer}
 <comment>"*/"	BEGIN(INITIAL);
 <comment>.	;
 
-"::"         return TYPEANNOT;
+":"          return COLON;
+"?"          return QUESTION;
 "("          return LPAREN;
 ")"          return RPAREN;
 "["          return LBRACKET;

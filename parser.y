@@ -12,29 +12,10 @@
   int yyerror(char *s);
 %}
 
-%token NEWLINE
-
-%token ID
-
-%token INTEGERCONST
-%token FLOATCONST
-%token STRINGCONST
-%token BOOLCONST
-
-%token TYPEANNOT
-%token LPAREN
-%token RPAREN
-%token LBRACKET
-%token RBRACKET
-%token LCURLY
-%token RCURLY
-%token LANGLE
-%token RANGLE
-%token COMMA
-%token DOTS
-%token SEMICOLON
+%token NEWLINE ID INTEGERCONST FLOATCONST STRINGCONST BOOLCONST LPAREN RPAREN LBRACKET RBRACKET LCURLY RCURLY LANGLE RANGLE COMMA DOTS SEMICOLON
 
 %right ASSIGN
+%left QUESTION COLON
 
 %left OR
 %left AND
@@ -57,12 +38,11 @@ statement-list
 ;
 
 statement-list:
-statement SEMICOLON statement-list
+statement statement-list
 {
   astnode node = create_astnode(STATEMENT);
   node->lchild = $1;
-  if($3)
-    node->rsibling = $3;
+  node->rsibling = $2;
 
   $$ = node;
 }
@@ -73,7 +53,7 @@ statement SEMICOLON statement-list
 ;
 
 statement:
-bindvar
+bindvar SEMICOLON
 {
   $$ = $1;
 }
@@ -83,7 +63,7 @@ bindfun
   $$ = $1;
 }
 |
-function-application
+function-application SEMICOLON
 {
   $$ = $1;
 }
@@ -103,17 +83,18 @@ identifier ASSIGN expression
   $$ = node;
 }
 |
-indexed-expr-identifier ASSIGN expression
+identifier index-expr-list ASSIGN expression
 {
   astnode node = create_astnode(BINDVAR);
   node->lchild = $1;
-  node->lchild->rsibling = $3;
+  node->lchild->lchild = $2;
+  node->lchild->rsibling = $4;
   $$ = node;
 }
 ;
 
 bindfun:
-LBRACKET return-list RBRACKET ASSIGN identifier LPAREN formal-params RPAREN LCURLY statement-list RCURLY
+LBRACKET identifier-list RBRACKET ASSIGN identifier LPAREN identifier-list RPAREN LCURLY statement-list RCURLY
 {
   astnode 
     bind = create_astnode(BINDFUN),
@@ -141,16 +122,12 @@ LBRACKET return-list RBRACKET ASSIGN identifier LPAREN formal-params RPAREN LCUR
 ;
 
 indexed-block:
-identifier LESS index-list GREATER  LCURLY statement-list RCURLY
+identifier index-list LCURLY statement-list RCURLY
 {
   astnode node = create_astnode(INDEXEDBLOCK), n;
   node->lchild = $1;
-  node->lchild->rsibling = $3;
-  n = node->lchild->rsibling;
-  while(n->rsibling != NULL)
-    n = n->rsibling;
-  n->rsibling = $6;
-  
+  node->lchild->lchild = $2;
+  node->lchild->rsibling = $4;
   $$ = node;
 }
 ;
@@ -216,6 +193,11 @@ LPAREN expression RPAREN
   $$ = $2;
 }
 |
+ternary-operator
+{
+  $$ = $1;
+}
+|
 function-application
 {
   $$ = $1;
@@ -231,8 +213,9 @@ identifier
   $$ = $1;
 }
 |
-indexed-expr-identifier
+identifier index-expr-list
 {
+  $1->lchild = $2;
   $$ = $1;
 }
 |
@@ -242,33 +225,92 @@ literal
 }
 ;
 
-formal-params:
-formal-param COMMA formal-params
+boolean-expression:
+boolean-expression OR boolean-expression
 {
-  if($3)
-    $1->rsibling = $3;
-  else {
-    yyerror("syntax error: extra comma in formal params");
-    return -1;
-  }
-  $$ = $1;
+  astnode node = create_astnode(OROP);
+  node->lchild = $1;
+  node->lchild->rsibling = $3;
+  $$ = node;
 }
 |
-formal-param
-|
+boolean-expression AND boolean-expression
 {
-  $$ = NULL;
+  astnode node = create_astnode(ANDOP);
+  node->lchild = $1;
+  node->lchild->rsibling = $3;
+  $$ = node;
+}
+|
+NOT boolean-expression
+{
+  astnode node = create_astnode(NOTOP);
+  node->lchild = $2;
+  $$ = node;
+}
+|
+expression ISEQUAL expression
+{
+  astnode node = create_astnode(EQOP);
+  node->lchild = $1;
+  node->lchild->rsibling = $3;
+  $$ = node;
+}
+|
+expression NOTEQUAL expression
+{
+  astnode node = create_astnode(INEQOP);
+  node->lchild = $1;
+  node->lchild->rsibling = $3;
+  $$ = node;
+}
+|
+expression LESS expression
+{
+  astnode node = create_astnode(LTOP);
+  node->lchild = $1;
+  node->lchild->rsibling = $3;
+  $$ = node;
+}
+|
+expression LESSEQ expression
+{
+  astnode node = create_astnode(LTEOP);
+  node->lchild = $1;
+  node->lchild->rsibling = $3;
+  $$ = node;
+}
+|
+expression GREATER expression
+{
+  astnode node = create_astnode(GTOP);
+  node->lchild = $1;
+  node->lchild->rsibling = $3;
+  $$ = node;
+}
+|
+expression GREATEREQ expression
+{
+  astnode node = create_astnode(GTEOP);
+  node->lchild = $1;
+  node->lchild->rsibling = $3;
+  $$ = node;
 }
 ;
 
-formal-param:
-identifier
-|
-index
+ternary-operator:
+boolean-expression QUESTION expression COLON expression
+{
+  astnode node = create_astnode(TERNARYOP);
+  node->lchild = $1;
+  node->lchild->rsibling = $3;
+  node->lchild->rsibling->rsibling = $5;
+  $$ = node;
+}
 ;
 
 function-application:
-identifier LPAREN actual-params RPAREN
+identifier LPAREN expression-list RPAREN
 {
   astnode node = create_astnode(FUNCALL);
   node->lchild = $1;
@@ -277,8 +319,8 @@ identifier LPAREN actual-params RPAREN
 }
 ;
 
-actual-params:
-actual-param COMMA actual-params
+expression-list:
+expression COMMA expression-list
 {
   if($3)
     $1->rsibling = $3;
@@ -289,33 +331,32 @@ actual-param COMMA actual-params
   $$ = $1;
 }
 |
-actual-param
+expression
+{
+  $$ = $1;
+}
 |
 {
   $$ = NULL;
 }
 ;
 
-actual-param:
-expression
-{
-  $$ = $1;
-}
-;
-
-return-list:
-identifier COMMA return-list
+identifier-list:
+identifier COMMA identifier-list
 {
   if($3)
     $1->rsibling = $3;
   else {
-    yyerror("syntax error: extra comma in return list");
+    yyerror("syntax error: extra comma in identifier list");
     return -1;
   }
   $$ = $1;
 }
 |
 identifier
+{
+  $$ = $1;
+}
 |
 {
   $$ = NULL;
@@ -351,13 +392,8 @@ index
 ;
 
 index:
-LBRACKET identifier RBRACKET
+LESS identifier GREATER
 {
-  if($2->type != IDENTIFIER){
-    yyerror("syntax error: only identifiers are allowed in indices");
-    return -1;
-  }
-
   astnode node = create_astnode(INDEX);
   node->lchild = $2;
   $$ = node;
@@ -383,14 +419,6 @@ LBRACKET expression RBRACKET
   astnode node = create_astnode(INDEX);
   node->lchild = $2;
   $$ = node;
-}
-;
-
-indexed-expr-identifier:
-identifier index-expr-list
-{
-  $1->lchild = $2;
-  $$ = $1;
 }
 ;
 
