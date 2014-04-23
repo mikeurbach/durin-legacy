@@ -33,7 +33,7 @@ void print_ast(astnode root, int depth){
   }
 
   if(root->type == BOOL){
-    printf("%d)", root->value.bool_val);
+    printf("%s)", root->value.bool_val);
     leaf = true;
   }
 

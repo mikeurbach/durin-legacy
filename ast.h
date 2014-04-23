@@ -21,6 +21,7 @@ typedef enum {
   BOOL,
   RANGE,
   INDEX,
+  SUBSCRIPT,
   BINDVAR,
   BINDFUN,
   PARAMS,
@@ -72,6 +73,7 @@ static struct token_lookup token_table[] = {
   {"BOOL",BOOL},
   {"RANGE",RANGE},
   {"INDEX",INDEX},
+  {"SUBSCRIPT",SUBSCRIPT},
   {"BINDVAR",BINDVAR},
   {"BINDFUN",BINDFUN},
   {"PARAMS",PARAMS},
@@ -115,7 +117,7 @@ struct astnode {
     int integer_val;
     float float_val;
     char *string_val;
-    bool bool_val;
+    char *bool_val;
   } value;
   int lower_bound;
   int upper_bound;

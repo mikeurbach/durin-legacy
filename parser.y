@@ -12,7 +12,7 @@
   int yyerror(char *s);
 %}
 
-%token NEWLINE ID INTEGERCONST FLOATCONST STRINGCONST BOOLCONST LPAREN RPAREN LBRACKET RBRACKET LCURLY RCURLY LANGLE RANGLE COMMA DOTS SEMICOLON
+%token ID INTEGERCONST FLOATCONST STRINGCONST BOOLCONST LPAREN RPAREN LBRACKET RBRACKET LCURLY RCURLY COMMA DOTS SEMICOLON
 
 %right ASSIGN
 %left QUESTION COLON
@@ -83,12 +83,11 @@ identifier ASSIGN expression
   $$ = node;
 }
 |
-identifier index-expr-list ASSIGN expression
+subscript ASSIGN expression
 {
   astnode node = create_astnode(BINDVAR);
   node->lchild = $1;
-  node->lchild->lchild = $2;
-  node->lchild->rsibling = $4;
+  node->lchild->rsibling = $3;
   $$ = node;
 }
 ;
@@ -126,8 +125,10 @@ identifier index-list LCURLY statement-list RCURLY
 {
   astnode node = create_astnode(INDEXEDBLOCK), n;
   node->lchild = $1;
-  node->lchild->lchild = $2;
-  node->lchild->rsibling = $4;
+  n = node->lchild->rsibling = $2;
+  while(n->rsibling)
+    n = n->rsibling;
+  n->rsibling = $4;
   $$ = node;
 }
 ;
@@ -213,9 +214,8 @@ identifier
   $$ = $1;
 }
 |
-identifier index-expr-list
+subscript
 {
-  $1->lchild = $2;
   $$ = $1;
 }
 |
@@ -294,6 +294,13 @@ expression GREATEREQ expression
   astnode node = create_astnode(GTEOP);
   node->lchild = $1;
   node->lchild->rsibling = $3;
+  $$ = node;
+}
+|
+BOOLCONST
+{
+  astnode node = create_astnode(BOOL);
+  node->value.bool_val = strdup(yytext);
   $$ = node;
 }
 ;
@@ -418,6 +425,16 @@ LBRACKET expression RBRACKET
 {
   astnode node = create_astnode(INDEX);
   node->lchild = $2;
+  $$ = node;
+}
+;
+
+subscript:
+identifier index-expr-list
+{
+  astnode node  = create_astnode(SUBSCRIPT);
+  node->lchild = $1;
+  node->lchild->rsibling = $2;
   $$ = node;
 }
 ;
