@@ -1,5 +1,6 @@
 #include "repl.h"
 #include "ast.h"
+#include "codegen.h"
 
 extern astnode parse_buffer(char *, int);
 
@@ -20,9 +21,14 @@ void repl(void){
       /* parse buffer */
       ast_root = parse_buffer(buffer, idx);
 
-      /* print the ast, unless there was a syntax error */
-      if(ast_root)
+      /* if there wasn't a syntax error */
+      if(ast_root){
+	int nodes;
 	print_ast(ast_root, 0);
+	codegen(ast_root);
+	nodes = destroy_ast(ast_root);
+	printf("%d astnodes\n", nodes);
+      }
 
       printf(">>> ");
 

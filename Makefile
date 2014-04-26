@@ -4,9 +4,9 @@ LEXER = lex.yy.c
 LEXER_SRC = lexer.l
 PARSER = parser.tab.c
 PARSER_SRC = parser.y
-SRCS = durin.c repl.c script.c ast.c $(PARSER) $(LEXER)
-HDRS = durin.h repl.h script.h ast.h
-OBJS = durin.o repl.o script.o ast.o parser.tab.o lex.yy.o
+SRCS = durin.c repl.c script.c ast.c symtab.c codegen.c $(PARSER) $(LEXER)
+HDRS = durin.h repl.h script.h ast.h symtab.h codegen.h
+OBJS = durin.o repl.o script.o ast.o symtab.o codegen.o parser.tab.o lex.yy.o
 EXEC = durin
 
 

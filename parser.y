@@ -199,11 +199,6 @@ ternary-operator
   $$ = $1;
 }
 |
-function-application
-{
-  $$ = $1;
-}
-|
 range
 {
   $$ = $1;

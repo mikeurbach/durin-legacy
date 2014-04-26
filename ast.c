@@ -7,6 +7,36 @@ astnode create_astnode(int tokentype){
   return node;
 }
 
+int destroy_ast(astnode node){
+  int ret = 0;
+  if(node){
+    ret += destroy_ast(node->lchild);
+    ret += destroy_ast(node->rsibling);
+
+    if(node->type == STRING){
+      free(node->value.string_val);
+    }
+    if(node->type == BOOL){
+      free(node->value.bool_val);
+    }
+
+    free(node);
+    ret += 1;
+  }
+
+  return ret;
+}
+
+int traverse_ast(astnode node, int (*fn)(astnode, void*), void *data){
+  int count = 0;
+  if(node){
+    count += traverse_ast(node->lchild, fn, data);
+    count += fn(node, data);
+    count += traverse_ast(node->rsibling, fn, data);
+  }
+  return count;
+}
+
 void print_ast(astnode root, int depth){
   astnode child;
   int i;

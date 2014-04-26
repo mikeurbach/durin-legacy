@@ -81,29 +81,29 @@ static struct token_lookup token_table[] = {
   {"FUNCALL",FUNCALL},
   {"INDEXEDBLOCK",INDEXEDBLOCK},
   {"TERNARYOP",TERNARYOP},
-  {"||",OROP},
-  {"&&",ANDOP},
-  {"==",EQOP}, 
-  {"!=",INEQOP},
-  {"<",LTOP}, 
-  {">",GTOP}, 
-  {"<=",LTEOP}, 
-  {">=",GTEOP},
-  {"+",ADDOP}, 
-  {".+",EADDOP}, 
-  {"-",SUBOP}, 
-  {".-",ESUBOP},
-  {"-",NEGOP}, 
-  {".-",ENEGOP},
-  {"*",MULOP}, 
-  {".*",EMULOP}, 
-  {"/",DIVOP}, 
-  {"./",EDIVOP}, 
-  {"%",MODOP}, 
-  {".%",EMODOP},
-  {"^",EXPOP}, 
-  {".^",EEXPOP},
-  {"!",NOTOP},
+  {"OR",OROP},
+  {"AND",ANDOP},
+  {"EQ",EQOP}, 
+  {"INEQ",INEQOP},
+  {"LT",LTOP}, 
+  {"GT",GTOP}, 
+  {"LTE",LTEOP}, 
+  {"GTE",GTEOP},
+  {"ADD",ADDOP}, 
+  {"EADD",EADDOP}, 
+  {"SUB",SUBOP}, 
+  {"ESUB",ESUBOP},
+  {"NEG",NEGOP}, 
+  {"ENEG",ENEGOP},
+  {"MUL",MULOP}, 
+  {"EMUL",EMULOP}, 
+  {"DIV",DIVOP}, 
+  {"EDIV",EDIVOP}, 
+  {"MOD",MODOP}, 
+  {"EMOD",EMODOP},
+  {"EXP",EXPOP}, 
+  {"EEXP",EEXPOP},
+  {"NOT",NOTOP},
   {NULL, 0}
 };
 
@@ -129,5 +129,7 @@ struct astnode {
 
 astnode create_astnode(int);
 void print_ast(astnode,int);
+int destroy_ast(astnode);
+int traverse_ast(astnode, int (*)(astnode, void*), void *);
 
 #endif
