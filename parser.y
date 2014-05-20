@@ -15,21 +15,23 @@
 %token ID INTEGERCONST FLOATCONST STRINGCONST BOOLCONST LPAREN RPAREN LBRACKET RBRACKET LCURLY RCURLY COMMA DOTS SEMICOLON
 
 %right ASSIGN
+
 %left QUESTION COLON
+%left NOT UMINUS EUMINUS
 
 %left OR
 %left AND
 %left ISEQUAL NOTEQUAL
 %left LESS GREATER LESSEQ GREATEREQ
+
 %left PLUS MINUS EPLUS EMINUS
 %left TIMES DIVIDE REMAINDER ETIMES EDIVIDE EREMAINDER
 %left EXP EEXP
-%left NOT UMINUS EUMINUS
 
 %%
 
 program: 
-statement-list
+bindfun
 {
   astnode node = create_astnode(PROGRAM);
   node->lchild = $1;
@@ -192,6 +194,11 @@ MINUS expression %prec UMINUS
 LPAREN expression RPAREN
 {
   $$ = $2;
+}
+|
+function-application
+{
+  $$ = $1;
 }
 |
 ternary-operator

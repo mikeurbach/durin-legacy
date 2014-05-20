@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
+
 #define true 1
 #define false 0
 typedef int bool;
@@ -83,25 +85,25 @@ static struct token_lookup token_table[] = {
   {"TERNARYOP",TERNARYOP},
   {"OR",OROP},
   {"AND",ANDOP},
-  {"EQ",EQOP}, 
+  {"EQ",EQOP},
   {"INEQ",INEQOP},
-  {"LT",LTOP}, 
-  {"GT",GTOP}, 
-  {"LTE",LTEOP}, 
+  {"LT",LTOP},
+  {"GT",GTOP},
+  {"LTE",LTEOP},
   {"GTE",GTEOP},
-  {"ADD",ADDOP}, 
-  {"EADD",EADDOP}, 
-  {"SUB",SUBOP}, 
+  {"ADD",ADDOP},
+  {"EADD",EADDOP},
+  {"SUB",SUBOP},
   {"ESUB",ESUBOP},
-  {"NEG",NEGOP}, 
+  {"NEG",NEGOP},
   {"ENEG",ENEGOP},
-  {"MUL",MULOP}, 
-  {"EMUL",EMULOP}, 
-  {"DIV",DIVOP}, 
-  {"EDIV",EDIVOP}, 
-  {"MOD",MODOP}, 
+  {"MUL",MULOP},
+  {"EMUL",EMULOP},
+  {"DIV",DIVOP},
+  {"EDIV",EDIVOP},
+  {"MOD",MODOP},
   {"EMOD",EMODOP},
-  {"EXP",EXPOP}, 
+  {"EXP",EXPOP},
   {"EEXP",EEXPOP},
   {"NOT",NOTOP},
   {NULL, 0}
@@ -128,8 +130,9 @@ struct astnode {
 #define YYSTYPE astnode // for lexer and parser
 
 astnode create_astnode(int);
-void print_ast(astnode,int);
+int print_ast(astnode);
 int destroy_ast(astnode);
-int traverse_ast(astnode, int (*)(astnode, void*), void *);
+int traverse_ast_up(astnode, int (*)(astnode, void*), void *);
+int traverse_ast_down(astnode, int (*)(astnode, void*), void *);
 
 #endif

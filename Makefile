@@ -1,5 +1,6 @@
 CC = gcc
-CFLAGS = -g
+CFLAGS = -g -Wall
+CLIBS = -lcgraph -lgvc
 LEXER = lex.yy.c
 LEXER_SRC = lexer.l
 PARSER = parser.tab.c
@@ -11,7 +12,7 @@ EXEC = durin
 
 
 $(EXEC): $(OBJS)
-	$(CC) $(CFLAGS) -o $(EXEC) $(OBJS)
+	$(CC) $(CFLAGS) -o $(EXEC) $(OBJS) $(CLIBS)
 
 $(OBJS): $(SRCS) $(HDRS) $(PARSER) $(LEXER)
 	$(CC) $(CFLAGS) -c $(SRCS) $(PARSER) $(LEXER)
@@ -30,3 +31,5 @@ clean:
 	rm -f lex.yy.c
 	rm -f parser.tab.*
 	rm -f parser.output
+	rm -f datapath.*
+	rm -f examples/*~

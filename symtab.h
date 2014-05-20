@@ -2,6 +2,7 @@
 #define __SYMTAB_H_ 1
 
 #include "ast.h"
+#include "codegen.h"
 
 #define SYMTAB_SIZE 1024
 
@@ -11,11 +12,7 @@ struct symnode {
   char *identifier;
   astnode_type type;
   int dim_count;
-  int param_count;
-  int return_count;
   int *dims;
-  symnode *params;
-  symnode *returns;
   symnode next;
 };
 
@@ -23,6 +20,7 @@ typedef struct symhashtable *symhashtable;
 struct symhashtable {
   int level;
   symnode *table;
+  Agraph_t *datapath;
   symhashtable outer_scope;
 };
 
@@ -36,7 +34,10 @@ symboltable create_symboltable();
 void destroy_symboltable(symboltable);
 symnode lookup_symnode(symboltable, char *);
 symnode insert_symnode(symboltable, symnode);
+symnode current_symbols(symboltable);
+Agraph_t *current_datapath(symboltable symtab);
 void enter_scope(symboltable);
 void leave_scope(symboltable);
+void print_symbols(symboltable);
 
 #endif

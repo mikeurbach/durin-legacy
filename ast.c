@@ -27,59 +27,84 @@ int destroy_ast(astnode node){
   return ret;
 }
 
-int traverse_ast(astnode node, int (*fn)(astnode, void*), void *data){
+int traverse_ast_up(astnode node, int (*fn)(astnode, void*), void *data){
   int count = 0;
   if(node){
-    count += traverse_ast(node->lchild, fn, data);
+    count += traverse_ast_up(node->lchild, fn, data);
     count += fn(node, data);
-    count += traverse_ast(node->rsibling, fn, data);
+    count += traverse_ast_up(node->rsibling, fn, data);
   }
   return count;
 }
 
-void print_ast(astnode root, int depth){
+int traverse_ast_down(astnode node, int (*fn)(astnode, void*), void *data){
+  int count = 0;
+  if(node){
+    count += fn(node, data);
+    count += traverse_ast_down(node->lchild, fn, data);
+    count += traverse_ast_down(node->rsibling, fn, data);
+  }
+  return count;
+}
+
+static int print_ast_help(astnode node, int depth){
+  static int count = 1;
   astnode child;
   int i;
   bool leaf = false;
 
+  if(depth == 0)
+    count = 1;
+  else
+    count++;
+
   for(i = 0; i < depth; i++) 
     printf("  ");
 
-  printf("(%s ", token_table[root->type].token);
+  printf("(%s ", token_table[node->type].token);
 
-  if(root->type == INTEGER){
-    printf("%d)", root->value.integer_val);
+  if(node->type == INTEGER){
+    printf("%d)", node->value.integer_val);
     leaf = true;
   }
 
-  if(root->type == FLOAT){
-    printf("%f)", root->value.float_val);
+  if(node->type == FLOAT){
+    printf("%f)", node->value.float_val);
     leaf = true;
   }
 
-  if(root->type == STRING || root->type == IDENTIFIER){
-    printf("%s)", root->value.string_val);
+  if(node->type == STRING || node->type == IDENTIFIER){
+    printf("%s)", node->value.string_val);
     leaf = true;
   }
 
-  if(root->type == BOOL){
-    printf("%s)", root->value.bool_val);
+  if(node->type == BOOL){
+    printf("%s)", node->value.bool_val);
     leaf = true;
   }
 
-  if(root->type == RANGE){
-    printf("[%d...%d])", root->lower_bound, root->upper_bound);
+  if(node->type == RANGE){
+    printf("[%d...%d])", node->lower_bound, node->upper_bound);
     leaf = true;
   }
 
   printf("\n");
 
-  for(child = root->lchild; child != NULL; child = child->rsibling)
-    print_ast(child, depth+1);
+  for(child = node->lchild; child != NULL; child = child->rsibling)
+    print_ast_help(child, depth+1);
 
   if(!leaf){
     for(i = 0; i < depth; i++) 
       printf("  ");
     printf(")\n");
   }
+
+  return count;
+}
+
+int print_ast(astnode root){
+  int count;
+  count = print_ast_help(root, 0);
+  printf("%d nodes\n", count);
+  return count;
 }

@@ -23,11 +23,9 @@ void repl(void){
 
       /* if there wasn't a syntax error */
       if(ast_root){
-	int nodes;
-	print_ast(ast_root, 0);
+	print_ast(ast_root);
 	codegen(ast_root);
-	nodes = destroy_ast(ast_root);
-	printf("%d astnodes\n", nodes);
+	destroy_ast(ast_root);
       }
 
       printf(">>> ");

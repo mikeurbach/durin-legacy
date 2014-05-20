@@ -23,11 +23,8 @@ symnode create_symnode(char *identifier, int type){
 
 static void destroy_symnode(symnode node){
   free(node->identifier);
-  if(node->type == BINDVAR)
+  if(node->type == BINDVAR){
     free(node->dims);
-  else if(node->type == BINDFUN){
-    free(node->params);
-    free(node->returns);
   }
   free(node);
 }
@@ -36,6 +33,7 @@ static symhashtable create_symhashtable(){
   symhashtable hashtable = malloc(sizeof(struct symhashtable));
   hashtable->table = calloc(SYMTAB_SIZE, sizeof(symnode));
   memset(hashtable->table, 0, SYMTAB_SIZE * sizeof(symnode));
+  hashtable->datapath = agopen("G", Agdirected, NULL);
   hashtable->outer_scope = NULL;
   hashtable->level = -1;
   return hashtable;
@@ -109,6 +107,28 @@ symnode insert_symnode(symboltable symtab, symnode node){
   return new;
 }
 
+symnode current_symbols(symboltable symtab){
+  int i;
+  symnode node, prev = NULL, head;
+  for(i = 0; i < SYMTAB_SIZE; i++){
+    node = symtab->inner_scope->table[i];
+    if(prev){
+      prev->next = node;
+    } else if(node){
+      head = node;
+    }
+    prev = node;
+    while(prev && prev->next){
+      prev = prev->next;
+    }
+  }
+  return head;
+}
+
+Agraph_t *current_datapath(symboltable symtab){
+  return symtab->inner_scope->datapath;
+}
+
 void enter_scope(symboltable symtab){
   symhashtable hashtable = create_symhashtable();
   hashtable->outer_scope = symtab->inner_scope;
@@ -120,4 +140,26 @@ void leave_scope(symboltable symtab){
   symhashtable hashtable = symtab->inner_scope;
   symtab->inner_scope = hashtable->outer_scope;
   destroy_symhashtable(hashtable);
+}
+
+void print_symbols(symboltable symtab){
+  symnode node;
+  symhashtable hashtable;
+  int i;
+
+  printf("first scope\n");
+  for(hashtable = symtab->inner_scope;
+      hashtable != NULL;
+      hashtable = hashtable->outer_scope){
+    for(i = 0; i < SYMTAB_SIZE; i++){
+      node = hashtable->table[i];
+      while(node){
+	printf("%s: %s\n", node->identifier, token_table[node->type].token);
+	node = node->next;
+      }
+    }
+    if(hashtable->outer_scope){
+      printf("next scope out\n");
+    }
+  }
 }
