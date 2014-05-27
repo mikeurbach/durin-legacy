@@ -4,7 +4,7 @@ symboltable symtab;
 Agraph_t *datapath, *current_dp;
 
 /* declarations and helpers */
-int handlenode(astnode node, void *data);
+void *handlenode(astnode node, int *errors);
 
 char *dpname(astnode node){
   char *strval = malloc(64);
@@ -34,14 +34,16 @@ char *dpname(astnode node){
    instantiates the global symbol table and shared datapath, then
    sets up some graph attributes for outputting the datapath
 */
-static int program_down(astnode node, void *data){
+static void *program_down(astnode node, int *errors){
     symtab = create_symboltable();
     datapath = current_datapath(symtab);
 
     agattr(datapath, AGNODE, "shape", "box");
     agattr(datapath, AGRAPH, "rankdir", "LR");
 
-    return (!symtab || !datapath) ? 1 : 0;
+    *errors += (!symtab || !datapath) ? 1 : 0;
+
+    return NULL;
 }
 
 /* 
@@ -49,8 +51,7 @@ static int program_down(astnode node, void *data){
    and outputs in the symbol table. also creates datapath
    nodes for the inputs and outputs
 */
-static int bindfun_down(astnode node, void *data){
-  int errors = 0;
+static void *bindfun_down(astnode node, int *errors){
   astnode inout, portname;
   symnode snode;
   Agraph_t *dp;
@@ -70,7 +71,7 @@ static int bindfun_down(astnode node, void *data){
     current_dp = dp;
   } else {
     printf("symbol %s has been used\n", node->lchild->value.string_val);
-    errors += 1;
+    *errors += 1;
   }
 
   /* go through the inputs adding them to the symbol table and datapath */
@@ -90,7 +91,7 @@ static int bindfun_down(astnode node, void *data){
 	dprec->operator = PARAMS;
       } else {
 	printf("symbol %s has been used\n", portname->value.string_val);
-	errors += 1;
+	*errors += 1;
       }
       portname = portname->rsibling;
     }
@@ -113,13 +114,13 @@ static int bindfun_down(astnode node, void *data){
 	dprec->operator = RETURN;
       } else {
 	printf("symbol %s has been used\n", portname->value.string_val);
-	errors += 1;
+	*errors += 1;
       }
       portname = portname->rsibling;
     }
   }
 
-  return errors;
+  return NULL;
 }
 
 /* 
@@ -128,17 +129,9 @@ static int bindfun_down(astnode node, void *data){
    creating datapath nodes for the children,
    and recursing
  */
-static int binary_arithmetic_op(astnode node, void *data){
-  int errors = 0;
-
-  /* cast the input node and create the nodes for the operands */
-  Agnode_t 
-    *dpnode = (Agnode_t *) data,
-    *dpop1 = agnode(current_dp, NULL, TRUE),
-    *dpop2 = agnode(current_dp, NULL, TRUE);
-
-  /* set the label for the node */
-  agsafeset(dpnode, "label", dpname(node), "");
+static void *binary_arithmetic_op(astnode node, int *errors){
+  /* create node for this operator, and pointers for operands */
+  Agnode_t *dpnode = agnode(current_dp, dpname(node), TRUE), *dpop1, *dpop2;
 
   /* attach the record we are using for this node */
   datapath_node dprec = (datapath_node) agbindrec(dpnode, "datapath_node",
@@ -149,12 +142,22 @@ static int binary_arithmetic_op(astnode node, void *data){
   dprec->operator = node->type;
 
   /* recurse to left and hook into the datapath */
-  handlenode(node->lchild, (void *) dpop1);
-  agedge(current_dp, dpop1, dpnode, NULL, TRUE);
+  dpop1 = (Agnode_t *) handlenode(node->lchild, errors);
+  if(!dpop1){
+    printf("unhandled node in binary expression: %s\n", dpname(node->lchild));
+    *errors += 1;
+  } else {
+    agedge(current_dp, dpop1, dpnode, NULL, TRUE);
+  }
 
   /* recurse to the right and hook into datapath */
-  handlenode(node->lchild->rsibling, (void *) dpop2);
-  agedge(current_dp, dpop2, dpnode, NULL, TRUE);
+  dpop2 = (Agnode_t *) handlenode(node->lchild->rsibling, errors);
+  if(!dpop2){
+    printf("unhandled node in binary expression: %s\n", dpname(node->lchild->rsibling));
+    *errors += 1;
+  } else {
+    agedge(current_dp, dpop2, dpnode, NULL, TRUE);
+  }
 
   /* if we can, use their values */
   if(node->lchild->type == INTEGER && 
@@ -175,20 +178,28 @@ static int binary_arithmetic_op(astnode node, void *data){
     }
   }
 
-  return errors;
+  return (void *) dpnode;
 }
 
+
+/* 
+   handles an unsubscripted identifier in an expression
+ */
+static void *identifier(astnode node, int *errors){
+  Agnode_t *dpnode = agnode(current_dp, dpname(node), FALSE);
+  if(!dpnode){
+    printf("identifier not bound: %s\n", dpname(node));
+    *errors += 1;
+  }
+  return (void *) dpnode;
+}
 
 /* 
    handles an integer literal, encoding its value in Dec64
    and putting that value in the datapath node passed in
  */
-static int integer_literal(astnode node, void *data){
-  int errors = 0;
-  Agnode_t *dpnode = (Agnode_t *) data;
-
-  /* set the label for the node */
-  agsafeset(dpnode, "label", dpname(node), "");
+static void *integer_literal(astnode node, int *errors){
+  Agnode_t *dpnode = agnode(current_dp, dpname(node), TRUE);
 
   /* set the node's record and the record's value */
   datapath_node dprec = (datapath_node) agbindrec(dpnode, "datapath_node",
@@ -196,7 +207,7 @@ static int integer_literal(astnode node, void *data){
 				    FALSE);
   dprec->value = itod64(node->value.integer_val);
 
-  return errors;
+  return (void *) dpnode;
 }
 
 /* 
@@ -204,22 +215,21 @@ static int integer_literal(astnode node, void *data){
    after recursing down the expression
    to connect it into the datapath via the identifier
  */
-static int bindvar_ident_up(astnode node, void *data){
-  int errors = 0;
-  Agnode_t 
-    *expnode = (Agnode_t *) data, 
-    *idnode = agnode(current_dp, node->lchild->value.string_val, TRUE);
-  agedge(current_dp, expnode, idnode, NULL, TRUE);
+static void *bindvar_ident_up(astnode node, int *errors){
+  Agnode_t *dpnode = agnode(current_dp, node->lchild->value.string_val, TRUE);
+  datapath_node dprec = (datapath_node) agbindrec(dpnode, "datapath_node",
+				    sizeof(struct datapath_node),
+				    FALSE);
+  dprec->operator = IDENTIFIER;
 
-  return errors;
+  return (void *) dpnode;
 }
 
 /* 
    ensures that the module has a name and assigns at least one output
 */
-static int program_up(astnode node, void *data){
-  int errors = 0,
-    returns = 0;
+static void *program_up(astnode node, int *errors){
+  int returns = 0;
   symnode symbol = current_symbols(symtab);
   FILE *file = fopen("datapath.dot", "w");
   Agnode_t *dpnode;
@@ -232,14 +242,14 @@ static int program_up(astnode node, void *data){
 	returns++;
       } else {
 	printf("program output %s is not assigned\n", symbol->identifier);
-	errors++;
+	*errors += 1;
       }
     }
     symbol = symbol->next;
   }
   if(!returns){
     printf("program must output at least one value\n");
-    errors++;
+    *errors += 1;
   }
 
   /* output the datapath */
@@ -248,30 +258,34 @@ static int program_up(astnode node, void *data){
   agwrite(datapath, stdout);
   fclose(file);
 
-  return errors;
+  return NULL;
 }
 
 /* 
    handles each node of the abstract sytax tree
    calls itself recursively
  */
-int handlenode(astnode node, void *data){
-  int errors = 0;
+void *handlenode(astnode node, int *errors){
+  Agnode_t *ret = NULL;
 
   /* big switch to delegate to helpers */
   switch(node->type){
   case PROGRAM:
-    errors += program_down(node, data);
-    errors += handlenode(node->lchild, data);
-    errors += program_up(node, data);
+    program_down(node, errors);
+    handlenode(node->lchild, errors);
+    program_up(node, errors);
     break;
   case STATEMENT:
-    errors += handlenode(node->lchild, data);
+    handlenode(node->lchild, errors);
+    if(node->rsibling){
+      handlenode(node->rsibling, errors);
+    }
     break;
   case IDENTIFIER:
+    ret = identifier(node, errors);
     break;
   case INTEGER:
-    errors += integer_literal(node, data);
+    ret = integer_literal(node, errors);
     break;
   case FLOAT:
     break;
@@ -287,17 +301,17 @@ int handlenode(astnode node, void *data){
     break;
   case BINDVAR:
     if(node->lchild->type == IDENTIFIER){
-      /* make datapath node for root of expression, and recurse */
-      Agnode_t *dpnode = agnode(current_dp, NULL, TRUE);
-      errors += handlenode(node->lchild->rsibling, (void *) dpnode);
-      errors += bindvar_ident_up(node, (void *) dpnode);
+      Agnode_t *exp, *ident;
+      exp = handlenode(node->lchild->rsibling, errors);
+      ident = bindvar_ident_up(node, errors);
+      agedge(current_dp, exp, ident, NULL, TRUE);
     } else if(node->lchild->type == SUBSCRIPT) {
       
     }
     break;
   case BINDFUN:
-    errors += bindfun_down(node, data);
-    errors += handlenode(node->lchild->rsibling->rsibling->rsibling, data);
+    bindfun_down(node, errors);
+    handlenode(node->lchild->rsibling->rsibling->rsibling, errors);
     break;
   case PARAMS:
     break;
@@ -337,7 +351,7 @@ int handlenode(astnode node, void *data){
   case EMODOP:
   case EXPOP:
   case EEXPOP:
-    errors += binary_arithmetic_op(node, data);
+    ret = binary_arithmetic_op(node, errors);
 
     break;
   case NEGOP:
@@ -350,7 +364,7 @@ int handlenode(astnode node, void *data){
     break;
   }
 
-  return errors;
+  return ret;
 }
 /* 
    main entry point for code generation
@@ -358,7 +372,8 @@ int handlenode(astnode node, void *data){
    all the while sharing the symboltable
 */
 void codegen(astnode root){
-  int errors = handlenode(root, NULL);
+  int errors = 0;
+  handlenode(root, &errors);
   print_symbols(symtab);
   printf("%d semantic errors\n", errors);
 }
