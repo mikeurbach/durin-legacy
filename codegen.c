@@ -221,13 +221,19 @@ static int program_up(astnode node, void *data){
   int errors = 0,
     returns = 0;
   symnode symbol = current_symbols(symtab);
-  GVC_t *gvc;
   FILE *file = fopen("datapath.dot", "w");
+  Agnode_t *dpnode;
   
-  /* ensure there is a at least one output value */
+  /* ensure there is at least one output value and they are all assigned */
   while(symbol){
     if(symbol->type == RETURN){
-      returns++;
+      dpnode = agnode(datapath, symbol->identifier, FALSE);
+      if(dpnode && agdegree(datapath, dpnode, TRUE, FALSE) > 0){
+	returns++;
+      } else {
+	printf("program output %s is not assigned\n", symbol->identifier);
+	errors++;
+      }
     }
     symbol = symbol->next;
   }
@@ -352,8 +358,7 @@ int handlenode(astnode node, void *data){
    all the while sharing the symboltable
 */
 void codegen(astnode root){
-  int errors = 0;
-  handlenode(root, NULL);
+  int errors = handlenode(root, NULL);
   print_symbols(symtab);
   printf("%d semantic errors\n", errors);
 }
