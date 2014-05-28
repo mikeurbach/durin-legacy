@@ -216,7 +216,8 @@ static void *integer_literal(astnode node, int *errors){
    to connect it into the datapath via the identifier
  */
 static void *bindvar_ident_up(astnode node, int *errors){
-  Agnode_t *dpnode = agnode(current_dp, node->lchild->value.string_val, TRUE);
+  Agnode_t *dpnode = agnode(current_dp, node->lchild->value.string_val, 
+			    TRUE);
   datapath_node dprec = (datapath_node) agbindrec(dpnode, "datapath_node",
 				    sizeof(struct datapath_node),
 				    FALSE);
@@ -226,24 +227,44 @@ static void *bindvar_ident_up(astnode node, int *errors){
 }
 
 /* 
-   ensures that the module has a name and assigns at least one output
+   ensures that the function assigns its outputs
+*/
+static void *bindfun_up(astnode node, int *errors){  
+  int returns = 0;
+  symnode symbol = current_symbols(symtab);
+  Agnode_t *dpnode;
+
+  /* ensure all output values are assigned */
+  while(symbol){
+    if(symbol->type == RETURN){
+      dpnode = agnode(datapath, symbol->identifier, FALSE);
+      if(dpnode && agdegree(datapath, dpnode, TRUE, FALSE)){
+	returns++;
+      } else {
+	printf("function output %s is not assigned\n", symbol->identifier);
+	*errors += 1;
+      }
+    }
+    symbol = symbol->next;
+  }
+
+  return NULL;
+}
+
+
+/* 
+   ensures that the program assigns at least one output
 */
 static void *program_up(astnode node, int *errors){
   int returns = 0;
   symnode symbol = current_symbols(symtab);
   FILE *file = fopen("datapath.dot", "w");
   Agnode_t *dpnode;
-  
-  /* ensure there is at least one output value and they are all assigned */
+
+  /* ensure there is at least one output value */
   while(symbol){
-    if(symbol->type == RETURN){
-      dpnode = agnode(datapath, symbol->identifier, FALSE);
-      if(dpnode && agdegree(datapath, dpnode, TRUE, FALSE) > 0){
-	returns++;
-      } else {
-	printf("program output %s is not assigned\n", symbol->identifier);
-	*errors += 1;
-      }
+    if(symbol->type == RETURN && agdegree(datapath, dpnode, TRUE, FALSE)){
+      returns++;
     }
     symbol = symbol->next;
   }
@@ -312,6 +333,7 @@ void *handlenode(astnode node, int *errors){
   case BINDFUN:
     bindfun_down(node, errors);
     handlenode(node->lchild->rsibling->rsibling->rsibling, errors);
+    bindfun_up(node, errors);
     break;
   case PARAMS:
     break;
