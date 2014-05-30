@@ -263,6 +263,7 @@ static void *program_up(astnode node, int *errors){
 
   /* ensure there is at least one output value */
   while(symbol){
+    dpnode = agnode(datapath, symbol->identifier, FALSE);
     if(symbol->type == RETURN && agdegree(datapath, dpnode, TRUE, FALSE)){
       returns++;
     }
