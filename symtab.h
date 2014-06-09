@@ -14,12 +14,15 @@ struct symnode {
   int dim_count;
   int *dims;
   symnode next;
+  symnode prev;
 };
 
 typedef struct symhashtable *symhashtable;
 struct symhashtable {
   int level;
   symnode *table;
+  symnode head;
+  symnode tail;
   Agraph_t *datapath;
   symhashtable outer_scope;
 };

@@ -65,7 +65,7 @@ struct token_lookup {
   astnode_type node_type;
 };
 
-static struct token_lookup token_table[] = {
+const static struct token_lookup token_table[] = {
   {"PROGRAM",PROGRAM},
   {"STATEMENT",STATEMENT},
   {"IDENTIFIER",IDENTIFIER},

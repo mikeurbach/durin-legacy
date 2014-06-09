@@ -1,7 +1,7 @@
 %{
   #include <stdio.h>
   #include "ast.h"
-  
+
   #define YYDEBUG 1
 
   astnode root, id;
@@ -100,8 +100,7 @@ LBRACKET identifier-list RBRACKET ASSIGN identifier LPAREN identifier-list RPARE
   astnode 
     bind = create_astnode(BINDFUN),
     params = create_astnode(PARAMS),
-    ret = create_astnode(RETURN),
-    n;
+    ret = create_astnode(RETURN);
   
   if(!$10){
     yyerror("syntax error: cannot define a function without a body");
