@@ -248,6 +248,10 @@ static void *bindfun_up(astnode node, int *errors){
     symbol = symbol->next;
   }
 
+  /* leave the scope, unless this is the top level scope */
+  if(symtab->inner_scope->level > 1)
+    leave_scope(symtab);
+
   return NULL;
 }
 

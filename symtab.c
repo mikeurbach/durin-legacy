@@ -41,13 +41,10 @@ static symhashtable create_symhashtable(){
 }
 
 static void destroy_symhashtable(symhashtable hashtable){
-  int i;
-  for(i = 0; i < SYMTAB_SIZE; i++){
-    symnode node, next;
-    for(node = hashtable->table[i]; node != NULL; node = next){
-      next = node->next;
-      destroy_symnode(node);
-    }
+  symnode node = hashtable->head;
+  while(node){
+    destroy_symnode(node);
+    node = node->next;
   }
 }
 
