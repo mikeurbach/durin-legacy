@@ -154,6 +154,7 @@ void leave_scope(symboltable symtab){
 void print_symbols(symboltable symtab){
   symnode node;
   symhashtable hashtable;
+  int i;
 
   printf("first scope\n");
   for(hashtable = symtab->inner_scope;
@@ -161,7 +162,19 @@ void print_symbols(symboltable symtab){
       hashtable = hashtable->outer_scope){
     node = hashtable->head;
     while(node){
-      printf("%s: %s\n", node->identifier, token_table[node->type].token);
+      printf("%s: %s", 
+	     node->identifier, token_table[node->type].token);
+      if(node->dim_count){
+	printf(" %d dimensional (", node->dim_count);
+	for(i = 0; i < node->dim_count; i++){
+	  printf("%d", node->dims[i]);
+	  if(i+1 < node->dim_count){
+	    printf("x");
+	  }
+	}
+	printf(")");
+      }
+      printf("\n");
       node = node->next;
     }
     if(hashtable->outer_scope){

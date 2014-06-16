@@ -25,8 +25,29 @@ char *dpname(astnode node){
   return strval;
 }
 
+void handle_dimensions(astnode node, symnode snode){
+  // count dimensions
+  int i = 0;
+  astnode dimnode = node->lchild;
+  while(dimnode){
+    snode->dim_count++;
+    dimnode = dimnode->rsibling;
+  }
+
+  // allocate an array of integers
+  snode->dims = malloc(sizeof(int) * snode->dim_count);
+
+  // copy the dimensions into the array
+  dimnode = node->lchild;
+  while(dimnode){
+    snode->dims[i] = dimnode->value.integer_val;
+    dimnode = dimnode->rsibling;
+    i++;
+  }
+}
+
 /* 
-   the functions at the top of this (before the big handlenode switch)
+   the functions before the big handlenode switch
    are called roughly in order top to bottom and up again to traverse AST
 */
 
@@ -83,6 +104,7 @@ static void *bindfun_down(astnode node, int *errors){
 	 else this is a semantic error */
       if(!lookup_symnode(symtab, portname->value.string_val)){
 	snode = create_symnode(portname->value.string_val, PARAMS);
+	handle_dimensions(portname, snode);
 	insert_symnode(symtab, snode);
 	dpnode = agnode(dp, snode->identifier, TRUE);
 	dprec = (datapath_node) agbindrec(dpnode, "datapath_node",
@@ -106,6 +128,7 @@ static void *bindfun_down(astnode node, int *errors){
 	 else this is a semantic error */
       if(!lookup_symnode(symtab, portname->value.string_val)){
 	snode = create_symnode(portname->value.string_val, RETURN);
+	handle_dimensions(portname, snode);
 	insert_symnode(symtab, snode);
 	dpnode = agnode(dp, snode->identifier, TRUE);
 	dprec = (datapath_node) agbindrec(dpnode, "datapath_node",
