@@ -12,7 +12,7 @@
   int yyerror(char *s);
 %}
 
-%token ID INTEGERCONST FLOATCONST STRINGCONST BOOLCONST LPAREN RPAREN LBRACKET RBRACKET LCURLY RCURLY COMMA DOTS SEMICOLON
+%token ID INTEGERCONST FLOATCONST STRINGCONST BOOLCONST LPAREN RPAREN LBRACKET RBRACKET LCURLY RCURLY COMMA DOTS SEMICOLON DIMS
 
 %right ASSIGN
 
@@ -350,7 +350,7 @@ expression
 ;
 
 identifier-list:
-identifier COMMA identifier-list
+sized-identifier COMMA identifier-list
 {
   if($3)
     $1->rsibling = $3;
@@ -361,7 +361,7 @@ identifier COMMA identifier-list
   $$ = $1;
 }
 |
-identifier
+sized-identifier
 {
   $$ = $1;
 }
@@ -437,6 +437,55 @@ identifier index-expr-list
   node->lchild = $1;
   node->lchild->rsibling = $2;
   $$ = node;
+}
+;
+
+sized-identifier:
+identifier COLON COLON size
+{
+  $1->lchild = $4;
+  $$ = $1;
+}
+|
+identifier
+{
+  astnode node = create_astnode(INTEGER);
+  node->value.integer_val = 1;
+  $1->lchild = node;
+  $$ = $1;
+}
+;
+
+size:
+literal COLON size
+{
+  if($1->type != INTEGER){
+    yyerror("syntax error: only Integer literals are allowed in matrix size definitions");
+    return -1;
+  }
+  if($1->value.integer_val < 1){
+    yyerror("syntax error: a size must be a positive");
+    return -1;
+  }
+  $1->rsibling = $3;
+  $$ = $1;
+}
+|
+literal
+{
+  if($1->type != INTEGER){
+    yyerror("syntax error: only Integer literals are allowed in matrix size definitions");
+    return -1;
+  }
+  if($1->value.integer_val < 1){
+    yyerror("syntax error: a size must be a positive");
+    return -1;
+  }
+  $$ = $1;
+}
+|
+{
+  $$ = NULL;
 }
 ;
 
