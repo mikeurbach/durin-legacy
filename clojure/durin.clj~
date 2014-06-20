@@ -1,2 +1,0 @@
-
-(def ast (read *in*))
