@@ -521,7 +521,7 @@ astnode parse_buffer(char *buffer, int len){
   int retval;
   extern int yydebug;
 
-  yydebug = 1;
+  yydebug = 0;
   
   yy_scan_bytes(buffer, len);
   retval = yyparse();

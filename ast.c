@@ -73,8 +73,14 @@ static int print_ast_help(astnode node, int depth){
     leaf = true;
   }
 
-  if(node->type == STRING || node->type == IDENTIFIER){
+  if(node->type == STRING || 
+     (node->type == IDENTIFIER && !node->lchild)){
     printf("%s)", node->value.string_val);
+    leaf = true;
+  }
+
+  if(node->type == IDENTIFIER && node->lchild){
+    printf("%s", node->value.string_val);
     leaf = true;
   }
 
@@ -93,7 +99,8 @@ static int print_ast_help(astnode node, int depth){
   for(child = node->lchild; child != NULL; child = child->rsibling)
     print_ast_help(child, depth+1);
 
-  if(!leaf){
+
+  if(!leaf || (node->type == IDENTIFIER && node->lchild)){
     for(i = 0; i < depth; i++) 
       printf("  ");
     printf(")\n");
@@ -105,6 +112,6 @@ static int print_ast_help(astnode node, int depth){
 int print_ast(astnode root){
   int count;
   count = print_ast_help(root, 0);
-  printf("%d nodes\n", count);
+  //printf("%d nodes\n", count);
   return count;
 }

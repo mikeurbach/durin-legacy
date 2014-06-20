@@ -1,0 +1,29 @@
+(program 
+  (bindfun 
+    (identifier f)
+    (params 
+      (identifier x
+        (integer 10)
+        (integer 3)
+      )
+      (identifier a
+        (integer 1)
+      )
+    )
+    (return 
+      (identifier y
+        (integer 10)
+        (integer 3)
+      )
+    )
+    (statement 
+      (bindvar 
+        (identifier y)
+        (add 
+          (identifier x)
+          (integer 1)
+        )
+      )
+    )
+  )
+)

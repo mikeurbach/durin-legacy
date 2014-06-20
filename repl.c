@@ -24,7 +24,7 @@ void repl(void){
       /* if there wasn't a syntax error */
       if(ast_root){
 	print_ast(ast_root);
-	codegen(ast_root);
+	//codegen(ast_root);
 	destroy_ast(ast_root);
       }
 

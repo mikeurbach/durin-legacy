@@ -1,0 +1,19 @@
+program := statement-list
+statement-list := statement statement-list | statement
+statement := bindvar | bindfun | callfun | indexed-block
+bindvar := identifier "=" expression ";"
+bindfun := function-header "{" statement-list "}"
+callfun := function-header ";"
+indexed-block := identifier "<" identifier-list ">" "{" statement-list "}"
+function-header := "[" nullable-identifier-list "]" "=" identifier "(" nullable-identifier-list ")"
+identifier-list := identifier identifier-list | identifier
+nullable-identifier-list := identifier-list | 
+
+program := ( bindvar|bindfun|callfun|indexed-block... )
+bindvar := ( bindvar sized-identifier expression )
+bindfun := ( bindfun (sized-identifier...) (sized-identifier...) (bindvar|bindfun|callfun|indexed-block...) )
+callfun := ( identifier (expression...) )
+indexed-block := ( identifier (identifier...) (bindvar|bindfun|callfun|indexed-block...) )
+sized-identifier := ( identifier (integer...))
+identifier := #"[a-zA-Z]"
+integer := #"[0-9]+"
