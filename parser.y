@@ -95,7 +95,7 @@ subscript ASSIGN expression
 ;
 
 bindfun:
-LBRACKET identifier-list RBRACKET ASSIGN identifier LPAREN identifier-list RPAREN LCURLY statement-list RCURLY
+LBRACKET identifier-list RBRACKET ASSIGN identifier LPAREN sized-identifier-list RPAREN LCURLY statement-list RCURLY
 {
   astnode 
     bind = create_astnode(BINDFUN),
@@ -350,7 +350,29 @@ expression
 ;
 
 identifier-list:
-sized-identifier COMMA identifier-list
+identifier COMMA identifier-list
+{
+  if($3)
+    $1->rsibling = $3;
+  else {
+    yyerror("syntax error: extra comma in identifier list");
+    return -1;
+  }
+  $$ = $1;
+}
+|
+identifier
+{
+  $$ = $1;
+}
+|
+{
+  $$ = NULL;
+}
+;
+
+sized-identifier-list:
+sized-identifier COMMA sized-identifier-list
 {
   if($3)
     $1->rsibling = $3;
