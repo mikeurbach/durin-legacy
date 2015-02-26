@@ -28,7 +28,7 @@ lambda             := formal-args '->' ('{' statement-list expression '}) | expr
 formal-args        := formal-value ',' formal-args | formal-value
 formal-value       := symbol | symbol '[' symbol-list ']
 math               := expression binary-op expression | expression '.' binary-op expression
-binary-op          := '+' | '-' | '*' | '/' | '^' |'%'
+binary-op          := '+' | '-' | '*' | '/' | '^' | '%' | '.'
 ternary            := boolean-expression ? expression : expression
 boolean-expression := boolean-expression ('&&' | '||') boolean-expression | '!' boolean-expression | expression compare-op expression
 compare-op         := '>' | '>=' | '<' | '<=' | '==' | '!='
