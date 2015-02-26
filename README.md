@@ -35,13 +35,15 @@ compare-op         := '>' | '>=' | '<' | '<=' | '==' | '!='
 value              := symbol | symbol '[' expression-list ']'
 expression-list    := expression ',' expression-list | expression
 literal            := 'null' | 'true' | 'false' | scalar-lit | matrix-lit
-scalar-lit         := int | int '.' nat | scalar-lit 'e' int
-int                := '-'? nat
-nat                := digit nat | digit
+scalar-lit         := '-'? (integer | decimal | scientific)
+integer            := nonzero* digit
+decimal            := integer '.' digit+
+scientific         := decimal 'e' '-'? integer
+digit              := [0-9]
+nonzero            := [1-9]
 matrix-lit         := '[' literal-list ']'
 literal-list       := literal ',' literal-list | literal
 symbol-list        := symbol ',' symbol-list | symbol
 symbol             := letter | letter ('_' | '-' | letter)
-digit              := [0-9]
 letter             := [a-zA-Z]
 ```
