@@ -11,4 +11,4 @@ module Clock(clk);
 	clk <= 1;
 	#10;
      end
-endmodule; // clock
+endmodule // clock

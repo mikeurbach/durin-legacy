@@ -30,8 +30,8 @@ module Register(I, Q, clk, ld, rst);
 endmodule // Register
 
 module RegisterTest;
+   reg clk, ld, rst;
    reg [63:0] I;
-   reg 	      clk, ld, rst;
    wire [63:0] Q;
    
    // Instantiate one register and a clock
@@ -66,4 +66,4 @@ module RegisterTest;
 	$dumpvars;
      end 
    
-endmodule; // RegisterTest
+endmodule // RegisterTest

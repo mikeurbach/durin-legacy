@@ -1,0 +1,24 @@
+#! /usr/bin/vvp
+:ivl_version "0.9.5 " "(v0_9_5)";
+:vpi_time_precision - 10;
+:vpi_module "system";
+:vpi_module "v2005_math";
+:vpi_module "va_math";
+S_0x8a73a98 .scope module, "Clock" "Clock" 2 3;
+ .timescale -9 -10;
+v0x8a73b18_0 .var "clk", 0 0;
+    .scope S_0x8a73a98;
+T_0 ;
+    %ix/load 0, 1, 0;
+    %assign/v0 v0x8a73b18_0, 0, 0;
+    %delay 100, 0;
+    %ix/load 0, 1, 0;
+    %assign/v0 v0x8a73b18_0, 0, 1;
+    %delay 100, 0;
+    %jmp T_0;
+    .thread T_0;
+# The file index is used to find the file name in the following table.
+:file_names 3;
+    "N/A";
+    "<interactive>";
+    "clock.v";
