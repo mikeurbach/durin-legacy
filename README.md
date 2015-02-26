@@ -1,6 +1,7 @@
 Examples
 --------
 
+```
 f = a[n], b -> a + b;
 reverse = list[n] -> { list<i>{ rev[i] = list[n-i-1]; }; rev };
 MM = a[m,n], b[m,n] -> { a<i, j>{ c[i,j] = a[i,j] * b[j,i]; }; c };
@@ -9,6 +10,7 @@ map = in, f -> { in<i>{ out = f(in[i]); } out };
 foldl = in, init, f -> { out = init; in<i>{ out = f(out, in[i]); } out };
 filter = in, f -> { in<i>{ out[i] = f(in[i]) ? in[i] : null; }; out };
 2 + 2
+```
 
 BNF
 ---
