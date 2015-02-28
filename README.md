@@ -37,6 +37,7 @@ expression-list    := expression ',' expression-list | expression
 ```
 Flex
 ----
+```
 literal            := 'null' | 'true' | 'false' | scalar-lit | matrix-lit
 scalar-lit         := '-'? (integer | decimal | scientific)
 integer            := nonzero* digit
