@@ -68,7 +68,7 @@ static int print_ast_help(astnode node, int depth){
     leaf = true;
   }
 
-  if(node->type == FLOAT){
+  if(node->type == DECIMAL){
     printf("%f)", node->value.float_val);
     leaf = true;
   }

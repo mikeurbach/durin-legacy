@@ -70,7 +70,7 @@ const static struct token_lookup token_table[] = {
   {"statement",STATEMENT},
   {"identifier",IDENTIFIER},
   {"integer",INTEGER},
-  {"float",FLOAT},
+  {"decimal",DECIMAL},
   {"string",STRING},
   {"bool",BOOL},
   {"range",RANGE},
