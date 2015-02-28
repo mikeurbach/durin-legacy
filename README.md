@@ -34,6 +34,8 @@ boolean-expression := boolean-expression ('&&' | '||') boolean-expression | '!' 
 compare-op         := '>' | '>=' | '<' | '<=' | '==' | '!='
 value              := symbol | symbol '[' expression-list ']'
 expression-list    := expression ',' expression-list | expression
+literal-list       := literal ',' literal-list | literal
+symbol-list        := symbol ',' symbol-list | symbol
 ```
 Flex
 ----
@@ -46,8 +48,6 @@ scientific         := decimal 'e' '-'? integer
 digit              := [0-9]
 nonzero            := [1-9]
 matrix-lit         := '[' literal-list ']'
-literal-list       := literal ',' literal-list | literal
-symbol-list        := symbol ',' symbol-list | symbol
 symbol             := letter | letter ('_' | '-' | letter)
 letter             := [a-zA-Z]
 ```
