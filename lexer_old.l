@@ -6,32 +6,42 @@
 int lexLookup(char *);
 %}
 
-white [ \t\n]+
-
-null "null"
-true "true"
-false "false"
+white [ \t]+
+letter [A-Za-z]
 digit [0-9]
-nonzero [1-9]
-integer {nonzero}*{digit}
-decimal {integer}"."{digit}+
-scientific {decimal}"e""-"?{integer}
-letter [a-zA-Z]
-symbol {letter}({letter}|{digit}|"_"|"-"|"'")*
+bool "true"|"false"
+id ({letter}|_)({letter}|{digit}|_)*
+integer {digit}+
+float {integer}?"."{integer}
+
+%x string
+%x comment
 
 %option noyywrap
 
 %%
 
-{white}          /* skip whitespace */
+{white}          /* skip spaces and tabs */
+"\n"             ;
 
-{null}       return NULL;
-{true}       return TRUE;
-{false}      return FALSE;
-{integer}    return INTEGER;
-{decimal}    return DECIMAL;
-{scientific} return SCIENTIFIC;
-{symbol}     return lexLookup(yytext);
+{bool}           return BOOLCONST;
+{id}             return lexLookup(yytext);
+{integer}        return INTEGERCONST;
+{float}          return FLOATCONST;
+
+
+\"           { BEGIN(string); }
+<string>\\\" { yymore(); }
+<string>\"   {
+  BEGIN(INITIAL);		/* go back to normal state */
+  yytext[--yyleng] = '\0';	/* remove the trailing double-quote */
+  return STRINGCONST;
+ }
+<string>.    { yymore(); }
+
+"/*"		BEGIN(comment);
+<comment>"*/"	BEGIN(INITIAL);
+<comment>.	;
 
 ":"          return COLON;
 "?"          return QUESTION;
@@ -82,7 +92,7 @@ int lexLookup(char *s) {
 
   static combo keywords[] =
     { 
-      { NULL, SYMBOL }
+      { NULL, ID }
     };
 
   combo *kw;

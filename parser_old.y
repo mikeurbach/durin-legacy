@@ -12,7 +12,7 @@
   int yyerror(char *s);
 %}
 
-%token SYMBOL INTEGER DECIMAL SCIENTIFIC NULL TRUE FALSE LPAREN RPAREN LBRACKET RBRACKET LCURLY RCURLY COMMA DOTS SEMICOLON DIMS
+%token ID INTEGERCONST FLOATCONST STRINGCONST BOOLCONST LPAREN RPAREN LBRACKET RBRACKET LCURLY RCURLY COMMA DOTS SEMICOLON DIMS
 
 %right ASSIGN
 
@@ -521,16 +521,16 @@ ID
 ;
 
 literal:
-INTEGER
+INTEGERCONST
 {
   astnode node = create_astnode(INTEGER);
   node->value.integer_val = atoi(yytext);
   $$ = node;
 }
 |
-DECIMAL
+FLOATCONST
 {
-  astnode node = create_astnode(DECIMAL);
+  astnode node = create_astnode(FLOAT);
   node->value.float_val = atof(yytext);
   $$ = node;
 }

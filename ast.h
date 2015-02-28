@@ -18,7 +18,7 @@ typedef enum {
   STATEMENT,
   IDENTIFIER,
   INTEGER,
-  FLOAT,
+  DECIMAL,
   STRING,
   BOOL,
   RANGE,

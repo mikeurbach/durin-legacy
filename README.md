@@ -34,20 +34,22 @@ boolean-expression := boolean-expression ('&&' | '||') boolean-expression | '!' 
 compare-op         := '>' | '>=' | '<' | '<=' | '==' | '!='
 value              := symbol | symbol '[' expression-list ']'
 expression-list    := expression ',' expression-list | expression
-literal-list       := literal ',' literal-list | literal
 symbol-list        := symbol ',' symbol-list | symbol
+matrix             := '[' literal-list ']'
+literal-list       := literal ',' literal-list | literal
+literal            := NULL | TRUE | FALSE | INTEGER | DECIMAL | SCIENTIFIC | matrix
 ```
 Flex
 ----
 ```
-literal            := 'null' | 'true' | 'false' | scalar-lit | matrix-lit
-scalar-lit         := '-'? (integer | decimal | scientific)
-integer            := nonzero* digit
-decimal            := integer '.' digit+
-scientific         := decimal 'e' '-'? integer
+NULL               := "null"
+TRUE               := "true"
+FALSE              := "false"
+INTEGER            := {nonzero}*{digit}
+DECIMAL            := {integer}"."{digit}+
+SCIENTIFIC         := {decimal}"e""-"?{integer}
+SYMBOL             := {letter}({letter}|{digit}|"_"|"-"|"'")*
 digit              := [0-9]
 nonzero            := [1-9]
-matrix-lit         := '[' literal-list ']'
-symbol             := letter | letter ('_' | '-' | letter)
 letter             := [a-zA-Z]
 ```
