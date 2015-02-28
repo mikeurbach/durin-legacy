@@ -35,9 +35,9 @@ compare-op         := '>' | '>=' | '<' | '<=' | '==' | '!='
 value              := symbol | symbol '[' expression-list ']'
 expression-list    := expression ',' expression-list | expression
 symbol-list        := symbol ',' symbol-list | symbol
-matrix             := '[' literal-list ']'
 literal-list       := literal ',' literal-list | literal
 literal            := NULL | TRUE | FALSE | INTEGER | DECIMAL | SCIENTIFIC | matrix
+matrix             := '[' literal-list ']'
 ```
 Flex
 ----

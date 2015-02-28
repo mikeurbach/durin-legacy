@@ -44,7 +44,8 @@ symbol {letter}({letter}|{digit}|"_"|"-"|"'")*
 ","          return COMMA;
 "..."        return DOTS;
 ";"          return SEMICOLON;
-"="          return ASSIGN;
+"="          return BIND;
+"->"         return ARROW;
 
 "+"          return PLUS;
 "-"          return MINUS;
@@ -52,12 +53,11 @@ symbol {letter}({letter}|{digit}|"_"|"-"|"'")*
 "/"          return DIVIDE;
 "%"          return REMAINDER;
 "^"          return EXP;
-".+"         return EPLUS;
-".-"         return EMINUS;
-".*"         return ETIMES;
-"./"         return EDIVIDE;
-".%"         return EREMAINDER;
-".^"         return EEXP;
+"."          return DOT;
+
+"!"          return NOT;
+"&&"         return AND;
+"||"         return OR;
 
 "=="         return ISEQUAL;
 "!="         return NOTEQUAL;
@@ -65,9 +65,6 @@ symbol {letter}({letter}|{digit}|"_"|"-"|"'")*
 ">"          return GREATER;
 "<="         return LESSEQ;
 ">="         return GREATEREQ;
-"!"          return NOT;
-"&&"         return AND;
-"||"         return OR;
 
 %%
 
