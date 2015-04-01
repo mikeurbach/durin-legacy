@@ -8,11 +8,12 @@
 
   extern int yylex();
   extern char *yytext;
+  extern void yy_scan_bytes(char *, int);
 
   int yyerror(char *s);
 %}
 
-%token SYMBOL INTEGER DECIMAL SCIENTIFIC NULL TRUE FALSE LPAREN RPAREN LBRACKET RBRACKET LCURLY RCURLY SEMICOLON COMMA
+%token SYMBOL INTEGER DECIMAL SCIENTIFIC NULL TRUE FALSE LPAREN RPAREN LBRACKET RBRACKET LCURLY RCURLY COMMA SEMICOLON IMPORT
 
 %right BIND
 
@@ -31,12 +32,16 @@
 %right EXP
 %left DOT
 
+%expect 13
+
 %%
 
 program: statement-list;
 
 statement-list: statement-list SEMICOLON statement | statement ;
-statement: enumeration SEMICOLON | binding SEMICOLON ;
+statement: import SEMICOLON | enumeration SEMICOLON | binding SEMICOLON ;
+
+import: IMPORT SYMBOL
 
 enumeration: SYMBOL LESS symbol-list GREATER LCURLY statement-list RCURLY ;
 symbol-list: SYMBOL COMMA symbol-list | SYMBOL ;

@@ -11,6 +11,7 @@ white [ \t\n]+
 null "null"
 true "true"
 false "false"
+import "import"
 digit [0-9]
 nonzero [1-9]
 integer {nonzero}*{digit}
@@ -28,6 +29,7 @@ symbol {letter}({letter}|{digit}|"_"|"-"|"'")*
 {null}       return NULL;
 {true}       return TRUE;
 {false}      return FALSE;
+{import}     return IMPORT;
 {integer}    return INTEGER;
 {decimal}    return DECIMAL;
 {scientific} return SCIENTIFIC;
